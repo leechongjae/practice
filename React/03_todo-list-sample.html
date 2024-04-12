@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+	<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+	<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+	<style>
+		body {
+			margin: 0;
+		}
+
+		.container {
+			background: skyblue;
+			width: 100%;
+			height: 100vh;	/* 1vh는 화면의 높이 1% */
+			display: flex;
+			flex-direction: column;
+		}
+
+		.header {
+			width: 100%;
+			height: 150px;
+			background: black;
+			color: white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		.content {
+			flex-grow: 1;
+			background: white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+
+		.todo-list {
+			background: lightcyan;
+			width: 500px;
+			border: 1px solid black;
+			height: 500px;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			padding-left: 50px;
+		}
+
+		.todo-list label {
+			margin: 20px;
+		}
+
+		.todo-list button {
+			border: none;
+			background: red;
+			border-radius: 10px;
+			color: white;
+		}
+
+		.append-list button {
+			background: green;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			height: 30px;
+		}
+
+		.footer {
+			width: 100%;
+			height: 70px;
+			display: flex;
+			background: black;
+			color: white;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+		}
+	</style>
+</head>
+<body>
+	<div id="root"></div>
+	<script type="text/babel">
+
+		const { useState } = React;
+
+		function Header() {
+            // 현재 날짜와 시간을 가져오는 함수
+            const getCurrentDateTime = () => {
+                const now = new Date();
+                const year = now.getFullYear(); // 연도
+                const month = now.getMonth() + 1; // 월 (0부터 시작하므로 +1)
+                const day = now.getDate(); // 일
+                const hours = now.getHours(); // 시간
+                const minutes = now.getMinutes(); // 분
+
+                // 날짜 및 시간을 포맷팅하여 문자열로 반환
+                const formattedDateTime = `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes}분`;
+
+                return formattedDateTime;
+            };
+
+            return (
+                <div className="header">
+                    <h1>오늘의 할일!</h1>
+                    <p>{getCurrentDateTime()}</p> {/* 현재 날짜 및 시간 표시 */}
+                </div>
+            );
+        }
+
+		function TodoItems({todos, setTodos}) {
+            const [checkedItems, setCheckedItems] = useState({});
+
+			// 할일 항목 삭제 이벤트 핸들러
+            const removeTodo = (todoId) => {
+                const updatedTodos = todos.filter((todo) => todo.id !== todoId);
+                setTodos(updatedTodos);
+            };
+
+            // 체크박스 상태 변경 이벤트 핸들러
+			const handleChange = (todoId) => {
+                setCheckedItems((prevCheckedItems) => ({
+                    ...prevCheckedItems,
+                    [todoId]: !prevCheckedItems[todoId]
+                }));
+            };
+			
+			return (
+                <>
+                    {todos.map((todo) => (
+                        <p key={todo.id}>
+                            <input
+                                type="checkbox"
+                                id={todo.id}
+                                checked={checkedItems[todo.id] || false}
+                                onChange={() => handleChange(todo.id)}
+                            />
+                            <label
+                                htmlFor={todo.id}
+                                style={{
+                                    textDecoration: checkedItems[todo.id] ? 'line-through' : 'none'
+                                }}
+                            >
+                                {todo.description}
+                            </label>
+                            <button onClick={() => removeTodo(todo.id)}>X</button>
+                        </p>
+                    ))}
+                </>
+            );
+        }
+
+		function TodoList() {
+
+			const [todos, setTodos] = useState([
+				{id: 1, description: '할일 목록을 추가할 것', isDone: false}
+			]); 
+			const [inputText, setInputText] = useState('');
+			const [nextId, setNextId] = useState(2);
+
+			/* 이벤트 핸들러 작성 */
+			const onChangeHandler = (e) => {setInputText(e.target.value)};
+
+			const onClickHandler = () => {
+                if(inputText.trim() === ''){
+                    alert('할일을 입력하세요.');
+                    return;
+                }
+
+                const newTodo = {
+                    id: nextId,
+                    description: inputText,
+                    isDone: false
+                };
+
+                setTodos([...todos, newTodo]);
+                setNextId(nextId + 1);
+                setInputText('');
+            }
+
+			return (
+				<>
+					<h3>TO-DO List</h3>
+					<div className="todo-list">
+						<TodoItems 
+							todos={ todos } 
+							setTodos={ setTodos }
+						/>
+					</div>
+					<div className="append-list">
+						<input 
+							type="text" 
+							value={ inputText } 
+							onChange={ onChangeHandler }
+						/>
+						<button onClick={ onClickHandler }>추가하기</button>
+					</div>
+				</>
+			);
+		}
+
+		function Content() {
+
+			return (
+				<div className="content">
+					<TodoList/>
+				</div>
+			);
+		}
+
+		function Footer() {
+
+			return (
+				<div className="footer">
+					<p>Copyright 2023. Team OhGiraffers all rights reserved.</p>
+				</div>
+			);
+		}
+
+		function TodoApp() {
+
+			return (
+				<div className="container">
+					<Header/>
+					<Content/>
+					<Footer/>
+				</div>
+			);
+		}
+
+		ReactDOM.createRoot(document.getElementById('root')).render(<TodoApp/>);
+	</script>
+</body>
+</html>
